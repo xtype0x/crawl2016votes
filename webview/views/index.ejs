@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html ng-app="electparse">
+  <head>
+    <title>選舉切切樂</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+		<link rel='stylesheet' href='/components/bootstrap/dist/css/bootstrap.min.css'>
+		<style>
+.spl {
+				-moz-animation: spin 0.7s infinite linear;
+				-webkit-animation: spin 0.7s infinite linear;
+				animation: spin 0.7s infinite linear;
+}
+
+@-moz-keyframes spin {
+				from {
+								-moz-transform: scale(1) rotate(0deg);
+								transform: scale(1) rotate(0deg);
+				}
+				to {
+								-moz-transform: scale(1) rotate(360deg);
+								transform: scale(1) rotate(360deg);
+				}
+}
+@-webkit-keyframes spin {
+				from {
+								-webkit-transform: scale(1) rotate(0deg);
+								transform: scale(1) rotate(0deg);
+				}
+				to {
+								-webkit-transform: scale(1) rotate(360deg);
+								transform: scale(1) rotate(360deg);
+				}
+}
+@keyframes spin {
+				from {
+								-moz-transform: scale(1) rotate(0deg);
+								-ms-transform: scale(1) rotate(0deg);
+								-webkit-transform: scale(1) rotate(0deg);
+								transform: scale(1) rotate(0deg);
+				}
+				to {
+								-moz-transform: scale(1) rotate(360deg);
+								-ms-transform: scale(1) rotate(360deg);
+								-webkit-transform: scale(1) rotate(360deg);
+								transform: scale(1) rotate(360deg);
+				}
+}
+		</style>
+
+		<script src="/components/jquery/dist/jquery.min.js"></script>
+		<script src="/components/bootstrap/dist/js/bootstrap.min.js"></script>
+		<script src="/components/angular/angular.min.js"></script>
+		<script src="/components/lodash/dist/lodash.min.js"></script>
+		<script src="/elect.js"></script>
+  </head>
+  <body ng-controller="index_controller">
+		<div class="container">
+			<h1>做好做滿 <span class="glyphicon glyphicon-thumbs-up spl"></span></h1>
+			<div class="row">
+				<div class="col-sm-2">
+					<h3>縣市</h3>
+					<div class="list-group">
+									<button type="button" ng-repeat="c in dist|orderBy:'index'" ng-bind="c.city" ng-click="choose_city(c)" class="list-group-item" ng-class="{'list-group-item-info':c==current_city}">
+						</button>
+					</div>
+				</div>
+				<div class="col-sm-2">
+					<h3 ng-bind="current_city.city"></h3>
+					<div class="panel panel-default" ng-class="{'panel-info':ind==current_index}" ng-repeat="ind in current_city.indexes">
+						<div class="panel-heading">
+							<h3 class="panel-title"><a href="#!" ng-bind="ind.name" ng-click="choose_index(ind)"></a></h3>
+						</div>
+						<div class="panel-body">
+							<div class="list-group">
+								<button class="list-group-item" ng-class="{'list-group-item-info':a==current_area}" ng-repeat="a in ind.areas" ng-bind="a.name" ng-click="choose_area(a)"></button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-8">
+					<div>
+									<button class="btn btn-default" ng-repeat="v in current_area.villages" ng-bind="v.name" style="margin:1px;" ng-class="{'active':current_village==v,'btn-info':v.power<0&&v.power>=-0.2,'btn-danger':v.power<-0.2,'btn-success':v.power>0.3}" ng-click="choose_village(v)"></button>
+					</div>
+					<div id="main">
+						<h2 ng-bind="category_title"></h2>
+						<div ng-show="result" ng-cloak>
+							<h4>總統PK副總統 <a href="#!"><span class="glyphicon" ng-class="{'glyphicon-chevron-down':!pres_hide,'glyphicon-chevron-right':pres_hide}" ng-click="pres_hide=!pres_hide"></span></a></h4>
+							<table class="table table-hover" ng-hide="pres_hide">
+								<tr class="info">
+									<th>選舉人數</th>
+									<th>投票數</th>
+									<th>有效票數</th>
+									<th>無效票數</th>
+									<th>投票率</th>
+								</tr>
+								<tr>
+									<td ng-bind="result.fp.totalCnt|number"></td>
+									<td ng-bind="result.fp.voteCnt|number"></td>
+									<td ng-bind="result.fp.validCnt|number"></td>
+									<td ng-bind="result.fp.invalidCnt|number"></td>
+									<td ng-bind="result.fp.voteRate*100|number:2" ng-class="{'text-success':result.fp.voteRate > 0.70,'text-danger':result.fp.voteRate < 0.60}"></td>
+								</tr>
+							</table>
+							<table class="table table-hover" ng-hide="pres_hide">
+								<tr class="info">
+									<th>候選人</th>
+									<th>得票數</th>
+									<th>得票百分比</th>
+								</tr>
+								<tr>
+									<td class="text-info">三黃三餡與九天玄女</td>
+									<td ng-bind="result.pres[0].cnt"></td>
+									<td ng-bind="(result.pres[0].p*100|number)+'%'"></td>
+								</tr>
+								<tr>
+									<td class="text-success">霧島艦娘與快樂的聖騎士</td>
+									<td ng-bind="result.pres[1].cnt"></td>
+									<td ng-bind="(result.pres[1].p*100|number)+'%'"></td>
+								</tr>
+								<tr>
+									<td class="text-warning">感恩廚餘師傅讚嘆廚餘師傅</td>
+									<td ng-bind="result.pres[2].cnt"></td>
+									<td ng-bind="(result.pres[2].p*100|number)+'%'"></td>
+								</tr>
+							</table>
+							<h4>政黨Fight GoGoGo <a href="#!"><span class="glyphicon" ng-class="{'glyphicon-chevron-down':!party_hide,'glyphicon-chevron-right':party_hide}" ng-click="party_hide=!party_hide"></span></a></h4>
+							<table class="table table-hover" ng-hide="party_hide">
+								<tr class="info">
+									<th>政黨</th>
+									<th>得票數</th>
+									<th>得票率</th>
+								</tr>
+								<tr ng-repeat="row in result.partyv|orderBy:'-cnt'">
+									<td ng-bind="row.name" ng-class="{'text-info':row.name=='中國國民黨', 'text-success':row.name=='民主進步黨'||row.name=='台灣團結聯盟','text-warning':row.name=='親民黨'||row.name=='民國黨','text-danger':row.name=='新黨'||row.name=='中華統一促進黨','text-muted':row.name=='時代力量'||row.name=='綠黨社會民主黨聯盟'}"></td>
+									<td ng-bind="row.cnt"></td>
+									<td ng-bind="(row.prob*100|number)+'%'"></td>
+								</tr>
+							</table>
+							<h4>立委大PK <a href="#!"><span class="glyphicon" ng-class="{'glyphicon-chevron-down':!legis_hide,'glyphicon-chevron-right':legis_hide}" ng-click="legis_hide=!legis_hide"></span></a></h4>
+							<table class="table table-hover" ng-hide="legis_hide">
+								<tr class="info">
+									<th>候選人(黨籍)</th>
+									<th>得票數</th>
+									<th>得票率</th>
+								</tr>
+								<tr ng-repeat="row in result.legis|orderBy:'-cnt'">
+									<td ng-bind="row.name+'('+row.party+')'" ng-class="{'text-info':row.party=='中國國民黨', 'text-success':row.party=='民主進步黨'||row.party=='台灣團結聯盟','text-warning':row.party=='親民黨'||row.party=='民國黨','text-danger':row.party=='新黨'||row.name=='中華統一促進黨','text-muted':row.party=='時代力量'||row.party=='綠黨社會民主黨聯盟'}"></td>
+									<td ng-bind="row.cnt"></td>
+									<td ng-bind="(row.prob*100|number)+'%'"></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>	
+		</div>
+  </body>
+</html>
