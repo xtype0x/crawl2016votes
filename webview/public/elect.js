@@ -4,11 +4,17 @@ angular.module('electparse', []).controller('index_controller', [
 		$http.get('/api/dist').success(function(res){
 			$scope.dist=_.map(res, function(c){
 				c.index=CITY_ORDER.indexOf(c.city);
+				c.areas=_.uniqBy(_.flatten(_.map(c.indexes,'areas')),'name')
 				return c;
 			});
 			console.log($scope.dist)
 		})
+		$scope.nav="area";
 		$scope.current_city={indexes:[]}
+		$scope.n_threshold = 10;
+		$scope.blue_threshold = 20;
+		$scope.green_threshold = 30;
+
 		$scope.choose_city = function(c){
 			$scope.current_city = c;
 			$scope.current_index = ""
@@ -40,24 +46,29 @@ angular.module('electparse', []).controller('index_controller', [
 			})
 		}
 		$scope.choose_area = function(a){
-			$scope.current_area = a;
 			$scope.current_index = "";
 			$scope.current_village = ""
-			$http.post('/api/get_area',{
-				city: $scope.current_city.city,
-				area: a.name
-			}).success(function(res){
-				$scope.result = res
-				$scope.category_title = $scope.current_city.city+'>'+a.name
-			})
+			
 			$http.post('/api/vil_power',{
 				city: $scope.current_city.city,
 				area: a.name
-			}).success(function(res){
-				$scope.current_area.villages = _.map($scope.current_area.villages, function(v){
-					return _.find(res,{name:v});
-				})
+			}).success(function(vps){
+				$http.post('/api/get_area',{
+					city: $scope.current_city.city,
+					area: a.name
+				}).success(function(res){
+					$scope.result = res
+					$scope.category_title = $scope.current_city.city+'>'+a.name
+			
+					a.villages = _.map(a.villages, function(v){
+						if(typeof v === "string")
+							return _.find(vps,{name:v});
+						return v;
+					})
 				
+					$scope.current_area = a;
+					console.log(a)	
+				})	
 			})
 		}
 		$scope.choose_village = function(v){

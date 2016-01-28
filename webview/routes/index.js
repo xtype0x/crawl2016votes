@@ -50,7 +50,8 @@ module.exports = function(app){
 								- _.find(doc.partyv,{name:"中國國民黨"}).cnt-_.find(doc.partyv,{name:"新黨"}).cnt-_.find(doc.partyv,{name:"中華統一促進黨"}).cnt)/doc.fp.voteCnt
 				return {
 					name: doc.village,
-					power: power
+					power: power,
+				  newpower: _.find(doc.partyv,{name:"新黨"}).cnt/doc.fp.voteCnt
 				}
 			})
 			return res.json(data)

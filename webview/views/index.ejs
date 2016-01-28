@@ -51,35 +51,62 @@
 		<script src="/components/bootstrap/dist/js/bootstrap.min.js"></script>
 		<script src="/components/angular/angular.min.js"></script>
 		<script src="/components/lodash/dist/lodash.min.js"></script>
-		<script src="/elect.js"></script>
+		<script src="/elect.js?v=<%=(new Date()).getTime()%>"></script>
   </head>
   <body ng-controller="index_controller">
 		<div class="container">
-			<h1>做好做滿 <span class="glyphicon glyphicon-thumbs-up spl"></span></h1>
+			<h1>超做好做滿v2.0 <span class="glyphicon glyphicon-thumbs-up spl"></span></h1>
 			<div class="row">
 				<div class="col-sm-2">
+					
 					<h3>縣市</h3>
 					<div class="list-group">
-									<button type="button" ng-repeat="c in dist|orderBy:'index'" ng-bind="c.city" ng-click="choose_city(c)" class="list-group-item" ng-class="{'list-group-item-info':c==current_city}">
-						</button>
+						<button type="button" ng-repeat="c in dist|orderBy:'index'" ng-bind="c.city" ng-click="choose_city(c)" class="list-group-item" ng-class="{'list-group-item-info':c==current_city}"></button>
 					</div>
 				</div>
 				<div class="col-sm-2">
 					<h3 ng-bind="current_city.city"></h3>
-					<div class="panel panel-default" ng-class="{'panel-info':ind==current_index}" ng-repeat="ind in current_city.indexes">
-						<div class="panel-heading">
-							<h3 class="panel-title"><a href="#!" ng-bind="ind.name" ng-click="choose_index(ind)"></a></h3>
-						</div>
-						<div class="panel-body">
-							<div class="list-group">
-								<button class="list-group-item" ng-class="{'list-group-item-info':a==current_area}" ng-repeat="a in ind.areas" ng-bind="a.name" ng-click="choose_area(a)"></button>
-							</div>
-						</div>
+					<ul class="nav nav-pills" ng-show="current_city.city" ng-cloak>
+						<li role="presentation" ng-class="{'active':nav=='area'}"><a href="#!" ng-click="nav='area'">區域</a></li>
+						<li role="presentation" ng-class="{'active':nav=='votearea'}"><a href="#!" ng-click="nav='votearea'">選區</a></li>
+					</ul><br>
+					<div class="list-group" style="" ng-show="current_city.city&&nav=='area'" ng-cloak>
+						<button class="list-group-item" ng-class="{'list-group-item-info':a==current_area}" ng-repeat="a in current_city.areas" ng-bind="a.name" ng-click="choose_area(a)"></button>
+					</div>
+					<div class="list-group" ng-show="current_city.city&&nav=='votearea'" ng-cloak>
+						<button class="list-group-item" ng-class="{'list-group-item-info':a==current_index}" ng-repeat="a in current_city.indexes" ng-bind="a.name" ng-click="choose_index(a)"></button>
 					</div>
 				</div>
 				<div class="col-sm-8">
-					<div>
-									<button class="btn btn-default" ng-repeat="v in current_area.villages" ng-bind="v.name" style="margin:1px;" ng-class="{'active':current_village==v,'btn-info':v.power<0&&v.power>=-0.2,'btn-danger':v.power<-0.2,'btn-success':v.power>0.3}" ng-click="choose_village(v)"></button>
+					<div ng-show="current_area" ng-cloak>
+						<button class="btn btn-default" ng-repeat="v in current_area.villages" ng-bind="v.name" style="margin:1px;" ng-class="{'active':current_village==v,'btn-info':v.power< -blue_threshold/100&&v.newpower<n_threshold/100,'btn-danger':v.newpower>n_threshold/100,'btn-success':v.power>green_threshold/100}" ng-click="choose_village(v)"></button>
+						<br><br>
+						<form class="form-inline">
+							<div class="form-group" style="margin-bottom:5px;">
+								<label class="control-label">紅按鈕：</label>
+								<div class="input-group">
+									<span class="input-group-addon">新黨大於</span>
+									<input type="number" class="form-control" step="0.1" max="100" min="0" ng-model="n_threshold">
+									<span class="input-group-addon">%</span>
+								</div>
+							</div>
+							<div class="form-group" style="margin-bottom:5px;">
+								<label class="control-label">藍按鈕：</label>
+								<div class="input-group">
+									<span class="input-group-addon">泛藍贏泛綠</span>
+									<input type="number" class="form-control" step="0.1" max="100" min="0" ng-model="blue_threshold">
+									<span class="input-group-addon">%</span>
+								</div>
+							</div>
+							<div class="form-group" style="margin-bottom:5px;">
+								<label class="control-label">綠按鈕：</label>
+								<div class="input-group">				
+									<span class="input-group-addon">泛綠贏泛藍</span>
+									<input type="number" class="form-control" step="0.1" max="100" min="0" ng-model="green_threshold">
+									<span class="input-group-addon">%</span>
+								</div>
+							</div>
+						</form>
 					</div>
 					<div id="main">
 						<h2 ng-bind="category_title"></h2>
